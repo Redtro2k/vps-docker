@@ -1,0 +1,71 @@
+version: '3.8'
+services:
+  nginx: 
+    image: nginx:latest
+    container_name: tne-nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - ./html:/var/www/html
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - php
+      - mysql
+    networks:
+      - tne-networks
+
+  php:
+    build: ./php
+    container_name: php-fpm
+    volumes:
+      - ./html:/var/www/html
+    networks:
+      - tne-networks
+
+  nodejs:
+    image: node:latest
+    container_name: nodejs
+    volumes:
+      - ./nodeapp:/usr/src/app
+    working_dir: /usr/src/app
+    command: npm install && npm start
+    ports:
+      - "3000:3000"
+    networks:
+      - tne-networks
+
+  mysql:
+    image: mysql:latest
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: tne123
+      MYSQL_DATABASE: mydb
+      MYSQL_USER: user
+      MYSQL_PASSWORD: userpassword
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - tne-networks
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: phpmyadmin
+    restart: always
+    ports: 
+      - "8081:80"
+    environment:
+      PMA_HOST: mysql
+      MYSQL_ROOT_PASSWORD: rootpassword
+    depends_on:
+      - mysql
+    networks: 
+      - tne-networks
+
+networks:
+  tne-networks:
+    driver: bridge
+
+volumes:
+  mysql_data:
+      
